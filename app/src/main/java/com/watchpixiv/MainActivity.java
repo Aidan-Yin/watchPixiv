@@ -6,6 +6,7 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.Debug;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -38,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
         ImageView imageView = findViewById(R.id.image);
         Button buttonGet = findViewById(R.id.get);
