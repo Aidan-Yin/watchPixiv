@@ -24,11 +24,12 @@
     <ImageView
         android:id="@+id/image"
         android:layout_width="409dp"
-        android:layout_height="535dp"
+        android:layout_height="495dp"
         android:scaleType="fitCenter"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/msgText"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.487"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5"
@@ -45,9 +46,10 @@
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/last"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.494"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.971" />
+        app:layout_constraintVertical_bias="0.983" />
 
     <Button
         android:id="@+id/next"
