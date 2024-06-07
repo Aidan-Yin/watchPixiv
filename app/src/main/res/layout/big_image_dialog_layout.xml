@@ -10,18 +10,17 @@
     android:foregroundTint="#00000000"
     android:visibility="visible">
 
-    <ImageView
+    <com.watchpixiv.DialogImageView
         android:id="@+id/bigImage"
         android:layout_width="409dp"
         android:layout_height="657dp"
         android:background="#00000000"
         android:backgroundTint="#00000000"
         android:foregroundTint="#00000000"
-        android:scaleType="fitCenter"
+        android:scaleType="matrix"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

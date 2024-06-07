@@ -1,15 +1,12 @@
 package com.watchpixiv;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,6 +22,8 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 import java.util.Objects;
 
@@ -97,34 +96,39 @@ public class MainActivity extends AppCompatActivity {
         Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(R.color.transparent);
         dialog.getWindow().setDimAmount(1f);
 
-        ImageView image = dialog.findViewById(R.id.bigImage);
+        DialogImageView dialogImageView = (DialogImageView) dialog.findViewById(R.id.bigImage);
 
-        // 动态调整图像大小
+        // 动态调整图像视窗大小
         Display display = getWindow().getWindowManager().getDefaultDisplay();
         Point point = new Point();
         display.getSize(point);
-        ViewGroup.LayoutParams layoutParams = image.getLayoutParams();
+        ViewGroup.LayoutParams layoutParams = dialogImageView.getLayoutParams();
         layoutParams.width = point.x;
         layoutParams.height = point.y;
-        image.setLayoutParams(layoutParams);
 
-        image.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                // TODO 处理手势
-                return false;
-            }
-        });
 
-        Glide.with(this)
-                .load(baseUrl + nowIdx + ( nowPage==1 ? "" : "-" + nowPage ) + ".jpg")
-                .into(image);
-
+        dialogImageView.setLayoutParams(layoutParams);
         dialog.show();
+        Glide.with(this).
+                asBitmap().
+                load(baseUrl + nowIdx + ( nowPage==1 ? "" : "-" + nowPage ) + ".jpg").
+                into(new CustomTarget<Bitmap>() {
+                    @Override
+                    public void onResourceReady(@NonNull Bitmap resource, @androidx.annotation.Nullable Transition<? super Bitmap> transition) {
+                        dialogImageView.setSourceBitmap(resource);
+                        Log.d("Glide","Loaded Bitmap");
 
-        image.setOnClickListener((view)->{
-            Log.d("BigImage","Clicked");
-            dialog.dismiss();
-        });
+                        // 这段在线程中加载会出问题，但在线程外会被识别为构造方法，从而在Glide之前执行，
+                        // 但是这段要用到bitmap
+                        // Glide的fitCenter达不到好效果
+                        dialogImageView.fitView();
+                    }
+
+                    @Override
+                    public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                    }
+                });
+
     }
 }
