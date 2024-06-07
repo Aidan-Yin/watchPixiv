@@ -17,7 +17,7 @@
         android:background="#00000000"
         android:backgroundTint="#00000000"
         android:foregroundTint="#00000000"
-        android:scaleType="matrix"
+        android:scaleType="fitCenter"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -13,13 +13,12 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Objects;
-
 /**
  * 用于实现图片识别手势缩放功能
  */
 public class DialogImageView extends androidx.appcompat.widget.AppCompatImageView {
 
+    private boolean _firstScale = true;
     public static final float SCALE_MAX = 3.0f;
     private static final float SCALE_MID = 1.5f;
     private final Matrix _scaleMatrix = new Matrix();
@@ -57,31 +56,35 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
      */
     public void fitView(){
         Log.d("DialogImageView","fitView");
-
-        // 图片加载超时
-//        long t1 = System.currentTimeMillis();
-//        while(Objects.isNull(_sourceBitmap)) {
-//            long t2 = System.currentTimeMillis();
-//            if (t2 - t1 > 2000) {
-//                Log.d("BigImage", "Loaded bitmap timeout!");
-//                return;
-//            }
-//        }
+        setScaleType(ScaleType.MATRIX);
         _sourceWidth = _sourceBitmap.getWidth();
         _sourceHeight = _sourceBitmap.getHeight();
         float xFactor = (float)getWidth()/_sourceWidth;
         float yFactor = (float)getHeight()/_sourceHeight;
-        _fitFactor = Math.min(xFactor, yFactor);
+        float dX;
+        float dY;
+        if(xFactor <= yFactor){
+            _fitFactor = xFactor;
+            dX = 0;
+            dY = (getHeight() - _fitFactor*_sourceHeight)/2;
+        }else{
+            _fitFactor = yFactor;
+            dX = (getWidth() - _fitFactor*_sourceWidth)/2;
+            dY = 0;
+        }
         _scaleMatrix.postScale(_fitFactor,_fitFactor);
-        Log.d("DialogImageView","fitView-scale");
+        setImageMatrix(_scaleMatrix);
+        _scaleMatrix.postTranslate(dX,dY);
         setImageMatrix(_scaleMatrix);
 
         // 如果这句不执行，最开始加载不出问题，但是缩放会黑屏
         _scaleMatrix.getValues(_matrixValues);
-
-        Log.d("DialogImageView","fittedView");
-//        Log.d("PosX", String.valueOf(_matrixValues[Matrix.MTRANS_X]));
-//        Log.d("PosY", String.valueOf(_matrixValues[Matrix.MTRANS_Y]));
+        Log.d("Height", String.valueOf(getHeight()));
+        Log.d("Width", String.valueOf(getWidth()));
+        Log.d("sHeight", String.valueOf(_sourceHeight));
+        Log.d("sWidth", String.valueOf(_sourceWidth));
+        Log.d("PosX", String.valueOf(_matrixValues[Matrix.MTRANS_X]));
+        Log.d("PosY", String.valueOf(_matrixValues[Matrix.MTRANS_Y]));
     }
 
     private void init(Context context){
@@ -116,6 +119,10 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
             @Override
             public boolean onScaleBegin(@NonNull ScaleGestureDetector scaleGestureDetector) {
                 Log.d("Scale","onScaleBegin");
+                if(_firstScale){
+                    _firstScale = false;
+                    fitView();
+                };
                 return true;
             }
 
@@ -138,6 +145,7 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
             Log.d("BigImage","Clicked");
             // dialog.dismiss();
         });
+
     }
 
     private float getScale(){

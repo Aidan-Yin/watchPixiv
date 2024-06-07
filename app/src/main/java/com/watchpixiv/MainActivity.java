@@ -117,11 +117,6 @@ public class MainActivity extends AppCompatActivity {
                     public void onResourceReady(@NonNull Bitmap resource, @androidx.annotation.Nullable Transition<? super Bitmap> transition) {
                         dialogImageView.setSourceBitmap(resource);
                         Log.d("Glide","Loaded Bitmap");
-
-                        // 这段在线程中加载会出问题，但在线程外会被识别为构造方法，从而在Glide之前执行，
-                        // 但是这段要用到bitmap
-                        // Glide的fitCenter达不到好效果
-                        dialogImageView.fitView();
                     }
 
                     @Override
