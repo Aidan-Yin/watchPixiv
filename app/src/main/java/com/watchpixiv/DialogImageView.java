@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -20,12 +21,16 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
 
     private boolean _firstScale = true;
     public static final float SCALE_MAX = 3.0f;
-    private static final float SCALE_MID = 1.5f;
+    private static final float SCALE_MIN = 0.5f;
     private final Matrix _scaleMatrix = new Matrix();
     private final float[] _matrixValues = new float[9];
 
     private ScaleGestureDetector _scaleGestureDetector;
-    private float _fitFactor = 1.0f;
+    private GestureDetector _gestureDetector;
+    private float _fitScale = 1.0f;
+    private float _nowScale = 1.0f;
+    private float _maxScale;
+    private float _minScale;
 
     private int _sourceWidth;
     private int _sourceHeight;
@@ -54,8 +59,8 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
     /*
      * 用于初始缩放图片到合适大小
      */
-    public void fitView(){
-        Log.d("DialogImageView","fitView");
+    public void initView(){
+        Log.d("DialogImageView","InitView");
         setScaleType(ScaleType.MATRIX);
         _sourceWidth = _sourceBitmap.getWidth();
         _sourceHeight = _sourceBitmap.getHeight();
@@ -64,15 +69,19 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
         float dX;
         float dY;
         if(xFactor <= yFactor){
-            _fitFactor = xFactor;
+            _fitScale = xFactor;
+            _maxScale = yFactor * SCALE_MAX;
+            _minScale = xFactor * SCALE_MIN;
             dX = 0;
-            dY = (getHeight() - _fitFactor*_sourceHeight)/2;
+            dY = (getHeight() - _fitScale *_sourceHeight)/2;
         }else{
-            _fitFactor = yFactor;
-            dX = (getWidth() - _fitFactor*_sourceWidth)/2;
+            _fitScale = yFactor;
+            _maxScale = xFactor * SCALE_MAX;
+            _minScale = yFactor * SCALE_MIN;
+            dX = (getWidth() - _fitScale *_sourceWidth)/2;
             dY = 0;
         }
-        _scaleMatrix.postScale(_fitFactor,_fitFactor);
+        _scaleMatrix.postScale(_fitScale, _fitScale);
         setImageMatrix(_scaleMatrix);
         _scaleMatrix.postTranslate(dX,dY);
         setImageMatrix(_scaleMatrix);
@@ -87,6 +96,22 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
         Log.d("PosY", String.valueOf(_matrixValues[Matrix.MTRANS_Y]));
     }
 
+    private void fitView(){
+        Log.d("DialogImageView","FitView");
+        float scaleFactor = _fitScale/getScale();
+        _scaleMatrix.postScale(scaleFactor,scaleFactor);
+        _scaleMatrix.getValues(_matrixValues);
+        float left = _matrixValues[Matrix.MTRANS_X];
+        float top = _matrixValues[Matrix.MTRANS_Y];
+        float width = _fitScale * _sourceWidth;
+        float height = _fitScale * _sourceHeight;
+        _scaleMatrix.postTranslate(
+                (getWidth() - width) / 2 - left,
+                (getHeight() - height) / 2 - top
+        );
+        setImageMatrix(_scaleMatrix);
+//        Log.d("Trans","left: "+left+",top:"+top+",width:"+width+",height:"+height+",dX:"+((getWidth() - width) / 2 - left)+",dY:"+((getHeight() - height) / 2 - top)+",vW:"+getWidth()+",vH:"+getHeight());
+    }
     private void init(Context context){
 
         Log.d("DialogImageView","Init");
@@ -95,24 +120,48 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
             public boolean onScale(@NonNull ScaleGestureDetector scaleGestureDetector) {
                 float scale = getScale();
                 float scaleFactor = scaleGestureDetector.getScaleFactor();
-                Log.d("Scale","onScale: "+scaleFactor+","+scaleGestureDetector.getFocusX()+","+scaleGestureDetector.getFocusY() );
+                Log.d("Scale","onScale: "+scaleFactor+","+scale+","+scaleGestureDetector.getFocusX()+","+scaleGestureDetector.getFocusY() );
 
                 if (getDrawable() == null) {
                     Log.d("Drawable","Is Null");
                     return true;
                 }
 
-                if ((scale < SCALE_MAX && scaleFactor > 1.0f) || (scale > _fitFactor && scaleFactor < 1.0f)) {
-                    if (scaleFactor * scale < _fitFactor) {
-                        scaleFactor = _fitFactor / scale;
-                    }
-                    if (scaleFactor * scale > SCALE_MAX) {
-                        scaleFactor = SCALE_MAX / scale;
-                    }
-                    // TODO 位置偏移的进一步控制
+                if (_minScale < _nowScale*scaleFactor && _nowScale*scaleFactor< _maxScale){
+                    scaleFactor = _nowScale/scale * scaleFactor;
                     _scaleMatrix.postScale(scaleFactor, scaleFactor, scaleGestureDetector.getFocusX(), scaleGestureDetector.getFocusY());
+                    // 位置偏移的进一步控制
+                    _scaleMatrix.getValues(_matrixValues);
+                    float dX = 0f;
+                    float dY = 0f;
+                    float left = _matrixValues[Matrix.MTRANS_X];
+                    float top = _matrixValues[Matrix.MTRANS_Y];
+                    float width = _matrixValues[Matrix.MSCALE_X] * _sourceWidth;
+                    float height = _matrixValues[Matrix.MSCALE_Y] * _sourceHeight;
+                    if (width > getWidth()){
+                        if(left > 0){
+                            dX = -left;
+                        } else if (left + width < getWidth()) {
+                            dX = getWidth() - left - width;
+                        }
+                    }else{
+                        dX = (getWidth() - width) / 2 - left;
+                    }
+                    if (height > getHeight()){
+                        if(top > 0){
+                            dY = -top;
+                        } else if (top + height < getHeight()) {
+                            dY = getHeight() - top - height;
+                        }
+                    }else{
+                        dY = (getHeight() - height) / 2 - top;
+                    }
+//                    Log.d("Trans","left: "+left+",top:"+top+",width:"+width+",height:"+height+",dX:"+dX+",dY:"+dY+",vW:"+getWidth()+",vH:"+getHeight());
+//                    Log.d("Scale","TransX:" +_matrixValues[Matrix.MTRANS_X] + "TransY:"+_matrixValues[Matrix.MTRANS_Y]);
+                    _scaleMatrix.postTranslate(dX,dY);
                     setImageMatrix(_scaleMatrix);
                 }
+
                 return false;
             }
 
@@ -121,8 +170,9 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
                 Log.d("Scale","onScaleBegin");
                 if(_firstScale){
                     _firstScale = false;
-                    fitView();
+                    initView();
                 };
+                _nowScale = getScale();
                 return true;
             }
 
@@ -131,11 +181,79 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
                 Log.d("Scale","onScaleEnd");
             }
         });
+
+        _gestureDetector = new GestureDetector(context, new GestureDetector.OnGestureListener() {
+            @Override
+            public boolean onDown(@NonNull MotionEvent motionEvent) {
+                return false;
+            }
+
+            @Override
+            public void onShowPress(@NonNull MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public boolean onSingleTapUp(@NonNull MotionEvent motionEvent) {
+                return false;
+            }
+
+            @Override
+            public boolean onScroll(@Nullable MotionEvent motionEvent, @NonNull MotionEvent motionEvent1, float v, float v1) {
+                Log.d("Scroll","v:"+v+",v1:"+v1);
+                _scaleMatrix.getValues(_matrixValues);
+                float dX = 0f;
+                float dY = 0f;
+                float left = _matrixValues[Matrix.MTRANS_X];
+                float top = _matrixValues[Matrix.MTRANS_Y];
+                float width = _matrixValues[Matrix.MSCALE_X] * _sourceWidth;
+                float height = _matrixValues[Matrix.MSCALE_Y] * _sourceHeight;
+                if(left - v < 0 && left + width - v > getWidth()){
+                    dX = -v;
+                }
+                if(top - v1 < 0 && top + height - v1 > getWidth()){
+                    dY = -v1;
+                }
+                _scaleMatrix.postTranslate(dX,dY);
+                setImageMatrix(_scaleMatrix);
+                return false;
+            }
+
+            @Override
+            public void onLongPress(@NonNull MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public boolean onFling(@Nullable MotionEvent motionEvent, @NonNull MotionEvent motionEvent1, float v, float v1) {
+                return false;
+            }
+        });
+
+        _gestureDetector.setOnDoubleTapListener(new GestureDetector.OnDoubleTapListener() {
+            @Override
+            public boolean onSingleTapConfirmed(@NonNull MotionEvent motionEvent) {
+                return false;
+            }
+
+            @Override
+            public boolean onDoubleTap(@NonNull MotionEvent motionEvent) {
+                fitView();
+                return false;
+            }
+
+            @Override
+            public boolean onDoubleTapEvent(@NonNull MotionEvent motionEvent) {
+                return false;
+            }
+        });
+
         setOnTouchListener(new View.OnTouchListener() {
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 _scaleGestureDetector.onTouchEvent(motionEvent);
+                _gestureDetector.onTouchEvent(motionEvent);
                 return false;
             }
         });
