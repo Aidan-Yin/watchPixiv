@@ -4,21 +4,26 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.google.android.material.snackbar.Snackbar;
 
 /**
  * 用于实现图片识别手势缩放功能
  */
 public class DialogImageView extends androidx.appcompat.widget.AppCompatImageView {
 
+    public String filename;
     private boolean _firstScale = true;
     public static final float SCALE_MAX = 3.0f;
     private static final float SCALE_MIN = 0.5f;
@@ -221,7 +226,22 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
 
             @Override
             public void onLongPress(@NonNull MotionEvent motionEvent) {
-
+                Log.d("ShowPress","x:"+motionEvent.getX()+",y:"+motionEvent.getY());
+                Snackbar.make(context,DialogImageView.this,"要保存图片到相册吗？",Snackbar.LENGTH_SHORT)
+                        .setAction("保存", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                MediaStore.Images.Media.insertImage(
+                                        context.getContentResolver(),
+                                        _sourceBitmap,
+                                        filename,
+                                        null
+                                        );
+                                Snackbar.make(context,DialogImageView.this,"已保存到相册",Snackbar.LENGTH_SHORT).show();
+                                Log.d("Snackbar","Saved");
+                            }
+                        })
+                        .show();
             }
 
             @Override

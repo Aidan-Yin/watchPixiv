@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
 import android.view.ViewGroup;
@@ -105,9 +106,10 @@ public class MainActivity extends AppCompatActivity {
         ViewGroup.LayoutParams layoutParams = dialogImageView.getLayoutParams();
         layoutParams.width = point.x;
         layoutParams.height = point.y;
-
-
         dialogImageView.setLayoutParams(layoutParams);
+
+        dialogImageView.filename = "pixiv_" + nowIdx +"_"+ System.currentTimeMillis();;
+
         dialog.show();
         Glide.with(this).
                 asBitmap().
