@@ -81,7 +81,6 @@
         android:id="@+id/msgText"
         android:layout_width="318dp"
         android:layout_height="30dp"
-        android:text="placeholder"
         android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/idx"
         app:layout_constraintEnd_toEndOf="parent"

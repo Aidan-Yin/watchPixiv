@@ -26,7 +26,7 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
     public String filename;
     private boolean _firstScale = true;
     public static final float SCALE_MAX = 3.0f;
-    private static final float SCALE_MIN = 0.5f;
+    private static final float SCALE_MIN = 0.7f;
     private final Matrix _scaleMatrix = new Matrix();
     private final float[] _matrixValues = new float[9];
 
@@ -216,7 +216,7 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
                 if(left - v < 0 && left + width - v > getWidth()){
                     dX = -v;
                 }
-                if(top - v1 < 0 && top + height - v1 > getWidth()){
+                if(top - v1 < 0 && top + height - v1 > getHeight()){
                     dY = -v1;
                 }
                 _scaleMatrix.postTranslate(dX,dY);
