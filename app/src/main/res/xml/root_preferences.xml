@@ -1,0 +1,12 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="Settings">
+
+        <EditTextPreference
+            android:defaultValue="https://pixiv.re/"
+            android:key="proxyURL"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="proxyURL" />
+    </PreferenceCategory>
+</PreferenceScreen>

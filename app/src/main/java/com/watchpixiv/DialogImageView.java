@@ -11,7 +11,6 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -176,7 +175,7 @@ public class DialogImageView extends androidx.appcompat.widget.AppCompatImageVie
                 if(_firstScale){
                     _firstScale = false;
                     initView();
-                };
+                }
                 _nowScale = getScale();
                 return true;
             }

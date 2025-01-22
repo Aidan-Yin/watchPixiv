@@ -1,11 +1,13 @@
 package com.watchpixiv;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -26,10 +29,12 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import  com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
-    private String baseUrl = "https://pixiv.re/";
+    private final String baseUrl = "https://pixiv.re/";
     private String nowIdx = "";
     private int nowPage = 1;
     private boolean loadedImage = false;
@@ -45,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         Button buttonNext = findViewById(R.id.next);
         TextView msgText = findViewById(R.id.msgText);
         EditText idx = findViewById(R.id.idx);
+        FloatingActionButton fab2setting = findViewById(R.id.floatingActionButton2setting);
 
         buttonGet.setOnClickListener((view) -> {
             nowIdx = idx.getText().toString();
@@ -67,12 +73,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        fab2setting.setOnClickListener((view)-> {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        });
+
     }
 
+    @SuppressLint("SetTextI18n")
     private void _load_image(@NonNull TextView msgText, ImageView imageView){
         loadedImage = false;
         msgText.setText("loading...");
-        String url = baseUrl + nowIdx + ( nowPage==1 ? "" : "-" + nowPage ) + ".jpg";
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String bu = sharedPreferences.getString("proxyURL", baseUrl);
+        if(!(bu.endsWith("/") || bu.endsWith("\\"))){
+            bu = bu + "/";
+        }
+        Log.d("baseURL",bu);
+        String url = bu + nowIdx + ( nowPage==1 ? "" : "-" + nowPage ) + ".jpg";
         Glide.with(this)
                 .load(url)
                 .listener(new RequestListener<Drawable>(){
@@ -108,12 +126,18 @@ public class MainActivity extends AppCompatActivity {
         layoutParams.height = point.y;
         dialogImageView.setLayoutParams(layoutParams);
 
-        dialogImageView.filename = "pixiv_" + nowIdx +"_"+ System.currentTimeMillis();;
+        dialogImageView.filename = "pixiv_" + nowIdx +"_"+ System.currentTimeMillis();
 
         dialog.show();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String bu = sharedPreferences.getString("proxyURL", baseUrl);
+        if(!(bu.endsWith("/") || bu.endsWith("\\"))){
+            bu = bu + "/";
+        }
+        Log.d("baseURL",bu);
         Glide.with(this).
                 asBitmap().
-                load(baseUrl + nowIdx + ( nowPage==1 ? "" : "-" + nowPage ) + ".jpg").
+                load(bu + nowIdx + ( nowPage==1 ? "" : "-" + nowPage ) + ".jpg").
                 into(new CustomTarget<Bitmap>() {
                     @Override
                     public void onResourceReady(@NonNull Bitmap resource, @androidx.annotation.Nullable Transition<? super Bitmap> transition) {
